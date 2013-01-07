@@ -14,19 +14,22 @@ class Prog:
 
     def run(self):
         #self.sync()
-        print(self.getBootloaderVersion())
-        print(self.getSignature())
+        print('bootloader: \n' + str(self.getBootloaderVersion()))
+        print('signature:\n' + str(self.getSignature()))
 
     def getBootloaderVersion(self):
+        self.write(b':03000006030004F0')
+        print(self.port.readline())
         self.write(b':050000030000000000F8')
         return self.port.readline()
 
     def getSignature(self):
+# sel. mem. sig.
         self.write(b':03000006030005EF')
 #        self.write(self._hexcksum(b':0400000603010000'))
         print(self.port.readline())
-        self.write(self._hexcksum(b':050000030000000100'))
-
+# read mem.
+        self._writeWithCksum(b':050000030000000004')
         return self.port.readline()
 
     def sync(self):
@@ -38,6 +41,9 @@ class Prog:
 
     def write(self, data,  nl = b'\r\n'):
         self.port.write(data + nl)
+
+    def _writeWithCksum(self, data,  nl = b'\r\n'):
+        self.port.write(self._hexcksum(data) + nl)
 
     def _hex2bin(self, hexstr):
         idx = 0
