@@ -7,21 +7,28 @@ import os.path
 import xml.etree.ElementTree as ET
 
 
+class PgmErr(Exception):
+    pass
+
+
 class Part:
     def __init__(self, partDescriptionPath):
-        part = ET.parse(partDescriptionPath)
-# TODO: validate
-        root = part.getroot()
-        self._name = root.attrib['NAME']
-        for child in root:
-            pass
+        partDesc = ET.parse(partDescriptionPath).getroot()
+        self._name = partDesc.attrib['NAME']
+        self._protocols = []
+        for child in partDesc:
+            if child.tag == 'Protocol':
+                self._protocols.append(child.attrib['FILE'])
             #print(child)
 
     def getName(self):
             return self._name
 
-    def getProtocolFileName(self):
-        return False
+    def getProtocolFileName(self, hardware):
+        hardware.upper()
+        for p in self._protocols:
+            if p.upper().startswith(hardware):
+                return p
 
 class Parts:
     def __init__(self,  descriptionsRoot, partsDir = 'PartDescriptionFiles'):
@@ -37,10 +44,10 @@ class Parts:
             part = Part(f)
             name = part.getName()
             if name in self._parts:
-                raise ValueError("Duplicate part names %s" % name)
+                raise PgmErr("Duplicate part names %s" % name)
             self._parts[part.getName()] = part
 
-    def getPartByName(name):
+    def getPartByName(self, name):
         return self._parts[name]
 
     def list(self):
@@ -55,7 +62,17 @@ class Protocol:
             )
 
     def __init__(self, protocolDescPath):
-        protocol = ET.parse(protocolDescPath)
+        self._cmds = {}
+        protocol = ET.parse(protocolDescPath).getroot()
+        for child in protocol:
+            if child.tag == 'Cmd':
+                self._cmds[child.attrib['NAME']] = child.attrib['VALUE']
+
+    def getCmd(self, cmd):
+        return self._cmds[cmd]
+
+    def hasCmd(self, cmd):
+        return cmd in self._cmds
 
 
 class ItelHex:
@@ -101,22 +118,22 @@ class Programmer:
         self._descriptionsDir = descriptionsDir
         self._parts = Parts(descriptionsDir)
 
-    def init(self, io, partName):
+    def init(self, io, partName, hardware):
         "Synchronize comunication with programmer/bootloader."
         self._io = io
         self._part = self._parts.getPartByName(partName)
-        protocolPath = path.join(self._descriptionsDir,
+        protocolPath = os.path.join(self._descriptionsDir,
                 'ProtocolDescriptionFiles',
-                self._part.getProtocolFileName())
+                self._part.getProtocolFileName(hardware))
         self._protocol = Protocol(protocolPath)
 
-        if self.self._protocol.hasCmd('sync'):
+        if self._protocol.hasCmd('sync'):
             sync = self._protocol.getCmd('sync')
             sync = bytes(sync, 'ascii')
             self._io.writeRaw(sync)
             r = self._io.readRaw(len(sync))
             if r != sync:
-                raise ValueError('Invalid result: %s' % r)
+                raise PgmErr('Synchronization failed, invalid result: %s' % r)
 
     def listDevices(self):
         return [part.getName() for part in self._parts.list()]
@@ -173,18 +190,30 @@ class Interface:
                 description='Linux remake of Atmel\'s BatchISP utility.')
         parser.add_argument('-device', type=str, required=True,
                 help="Device type, ? for list.")
+        parser.add_argument('-port', type=str,
+                help="Port/interface to connect.")
+        parser.add_argument('-hardware', type=str,
+                help="{ RS232 | TODO }")
+        parser.add_argument('-operation', type=list, required=True, nargs='*',
+                help="... ??? TODO")
         args = parser.parse_args()
         if args.device == '?':
             prog = Programmer()
             print(prog.listDevices())
             exit(0)
 
-        print(args)
+        try:
+            prog = Programmer()
+            if args.hardware == 'RS232':
+                io = SerialIO(args.port)
+                prog.init(io, args.device, args.hardware)
+            else:
+                print("Unsupported hardware type: '%s'" % args.hardware)
+                exit(1)
+        except PgmErr as e:
+            print(e)
+            exit(1)
 
-        prog = Programmer()
-        print(prog.listDevices())
-        io = SerialIO('/dev/ttyACM0')
-        prog.init(io)
         print('bootloader: \n' + str(prog.getBootloaderVersion()))
         print('signature:\n' + str(prog.getSignature()))
 
