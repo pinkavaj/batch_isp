@@ -15,13 +15,24 @@ class BatchISP:
                 help="Port/interface to connect.")
         parser.add_argument('-hardware', type=str,
                 help="{ RS232 | TODO }")
-        parser.add_argument('-operation', type=list, required=True, nargs='*',
+        parser.add_argument('-operation', type=str, required=True, nargs='*',
                 help="... ??? TODO")
         self._args = parser.parse_args()
+        self._parser = parser
+
+    def _getIOByHardwareName(self, hardware):
+        if hardware == 'RS232':
+            if self._args.port is None:
+                raise PrgError("Port not specified for RS232")
+            return SerialIO(self._args.port)
+        else:
+            raise PrgError("Unsupported hardware: %s" % hardware)
+
+    def run(self):
         if self._args.device == '?':
             parts = Parts()
             print([part.getName() for part in parts.list()])
-            exit(0)
+            return 0
 
         try:
             part = Parts().getPartByName(self._args.device)
@@ -41,10 +52,3 @@ class BatchISP:
             print(e)
             exit(1)
 
-    def _getIOByHardwareName(self, hardware):
-        if hardware == 'RS232':
-            if self._args.port is None:
-                raise PrgError("Port not specified for RS232")
-            return SerialIO(self._args.port)
-        else:
-            raise PrgError("Unsupported hardware: %s" % hardware)
