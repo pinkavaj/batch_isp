@@ -15,6 +15,7 @@ class BatchISP:
                 help="Port/interface to connect.")
         parser.add_argument('-hardware', type=str,
                 help="{ RS232 | TODO }")
+        parser.add_argument('-version', action='version', version='%(prog)s 0.0.0')
         parser.add_argument('-operation', type=str, required=True, nargs='*',
                 help="... ??? TODO")
         self._args = parser.parse_args()
