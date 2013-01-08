@@ -9,6 +9,8 @@ class BatchISP:
     def __init__(self):
         parser = argparse.ArgumentParser(
                 description='Linux remake of Atmel\'s BatchISP utility.')
+        parser.add_argument('-baudrate', type=int,
+                help="{ 9600 | 19200 | 38400 | 57600 | *115200* }")
         parser.add_argument('-device', type=str, required=True,
                 help="Device type, ? for list.")
         parser.add_argument('-port', type=str,
@@ -25,7 +27,10 @@ class BatchISP:
         if hardware == 'RS232':
             if self._args.port is None:
                 raise PrgError("Port not specified for RS232")
-            return SerialIO(self._args.port)
+            if not self._args.baudrate is None:
+                return SerialIO(self._args.port, self._args.baudrate)
+            else:
+                return SerialIO(self._args.port)
         else:
             raise PrgError("Unsupported hardware: %s" % hardware)
 
