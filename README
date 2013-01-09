@@ -14,6 +14,6 @@ limitations under the License.
 
 == Description ==
 
-Opensource and free remake of Atmel's BatchIPS utility from FLIP. Usefull for
+Open source and free remake of Atmel's BatchIPS utility from FLIP. Usefull for
 programing Atmel's AVR SOC. Currently only small subset of devices/protocols
 are supported.

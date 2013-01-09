@@ -1,44 +1,55 @@
-== requirements ==
+== Requirements ==
 
-- python3
+- python 3
 - py-serial
 - original Atmel FLIP (contains definitions for devices/protocols)
+  http://www.atmel.com/tools/flip.aspx
 
-== install ==
+== Install ==
 
-Instalation is not needed, but device and protocol definitions are required
-from original FLIP utility (I'm not allowed to bundle them with this program).
+Instalation is not needed. For proper function program require original
+device and protocol definitions from Atmel FLIP utility. These cannot be
+bundled with this program because of copyright.
 
-- Install/extract latest version of flip
+- install/extract latest version of FLIP (Wine might help)
 - find directories "PartDescriptionFiles" and "ProtocolDescriptionFiles"
-- copy them into project root
+  usually can be found somewhere near C:\Program\ Files/ATMEL/Flip\ x.y.z/bin/
+- copy them into root directory of this project
 
 FIXME: instalation is not supported yet, add Python packaging support!
 
 == usage ==
 
 # list all supported devices, look at Atmel site if you favorite one missing.
-python3 batch_isp -device ?
+python3 __main__.py -device ?
 
 # read content of flash
-python3 batch_isp -port /dev/ttyACM0 -device ATxmega128A1 -operations MEMORY FLASH READ SAVEBUFFER dump.hex 386HEX
+python3 __main__.py -port /dev/ttyACM0 -device ATxmega128A1 -operations MEMORY FLASH READ SAVEBUFFER dump.hex 386HEX
 
 # program device
-python3 batch_isp -port /dev/ttyACM0 -device ATxmega128A1 -operations TODO
+python3 __main__.py -port /dev/ttyACM0 -device ATxmega128A1 -operations TODO
 
 == Troubleshot ==
 
-=== Comunucation trought /dev/ttyACM0 seems not working. ==
+=== Comunication trought /dev/ttyACM0 does not work (programmer timeouts). ==
+
+Problem is described here.
+
+http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=125613
+
 This issue is well known for Atmel Xmega Xplained ATxmeta128A1
 board revision 7 (and may be others). Problem is caused by firmware
-in gateway chip xxxUC3B1250. You need reprogram it with new FW.
+in gateway chip ATUC3B1250. You need reprogram it with new FW.
 
- - need reflash firmware in proxy SOC
- - Install Atmel Studio 6 (rev 2) (Windows required)
+ - install Atmel Studio 6 (Windows required)
  - create example project "USB driver ... ???"
  - build
- - enter proxy bootloader
+ - enter board controller bootloader (short bcbootloader pins)
  - connect kit trought USB to PC
- - upload hex with BatchISP for windows (or dfu-programmer?)
+ - upload hex
+  a) with original BatchISP
+  b) with dfu-programmer
+     http://dfu-programmer.sourceforge.net/
+ - unshort bcbootloader pins, restart ...
 
 FIXME: detailed description of solution
