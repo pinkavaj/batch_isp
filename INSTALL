@@ -1,0 +1,44 @@
+== requirements ==
+
+- python3
+- py-serial
+- original Atmel FLIP (contains definitions for devices/protocols)
+
+== install ==
+
+Instalation is not needed, but device and protocol definitions are required
+from original FLIP utility (I'm not allowed to bundle them with this program).
+
+- Install/extract latest version of flip
+- find directories "PartDescriptionFiles" and "ProtocolDescriptionFiles"
+- copy them into project root
+
+FIXME: instalation is not supported yet, add Python packaging support!
+
+== usage ==
+
+# list all supported devices, look at Atmel site if you favorite one missing.
+python3 batch_isp -device ?
+
+# read content of flash
+python3 batch_isp -port /dev/ttyACM0 -device ATxmega128A1 -operations MEMORY FLASH READ SAVEBUFFER dump.hex 386HEX
+
+# program device
+python3 batch_isp -port /dev/ttyACM0 -device ATxmega128A1 -operations TODO
+
+== Troubleshot ==
+
+=== Comunucation trought /dev/ttyACM0 seems not working. ==
+This issue is well known for Atmel Xmega Xplained ATxmeta128A1
+board revision 7 (and may be others). Problem is caused by firmware
+in gateway chip xxxUC3B1250. You need reprogram it with new FW.
+
+ - need reflash firmware in proxy SOC
+ - Install Atmel Studio 6 (rev 2) (Windows required)
+ - create example project "USB driver ... ???"
+ - build
+ - enter proxy bootloader
+ - connect kit trought USB to PC
+ - upload hex with BatchISP for windows (or dfu-programmer?)
+
+FIXME: detailed description of solution
