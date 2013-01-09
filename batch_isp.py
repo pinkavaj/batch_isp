@@ -101,7 +101,10 @@ class BatchISP:
     def run(self):
         if self._args.device == '?':
             parts = Parts()
-            print([part.getName() for part in parts.list()])
+
+            parts = [part.getName() for part in parts.list()]
+            parts.sort()
+            print(parts)
             return 0
 
         try:
