@@ -1,4 +1,4 @@
-import intel_hex
+import hexutils
 import os.path
 from pgm_error import PgmError
 from protocol import Protocol
@@ -33,15 +33,14 @@ class Operations:
         operation = 'select_memory_' + name.lower()
         self._opDotOperation(operation)
 
-    def opRead(self):
-        addr_start = 0
-        addr_stop = self._part.getMemory(self._memory_name).getSize()
-        addr_stop = 4*512 # debug
+    def opRead(self, addr_start, size=None):
+        if size is None:
+            addr_stop = self._part.getMemory(self._memory_name).getSize()
+        else:
+            addr_stop = addr_start + size
         page_size = self._part.getPageSize()
-        if page_size > addr_stop - addr_start:
-            page_size = addr_stop - addr_start
 
-        data = []
+        data = ''
         addr = addr_start
         addr_hi_prev = -1
 
@@ -52,12 +51,27 @@ class Operations:
                 cmd = self._protocol.getCmd('select_memory_page', PPPP=addr_hi)
                 self._opDotCmd(cmd)
             addr_end = addr_lo + page_size - 1
+            if addr_end > addr_stop:
+                addr_end = addr_stop - 1
             if addr_end >= 0x10000:
-                raise PgmError("Invalid block or range alignment")
-            cmd = self._protocol.getCmd('read_memory', PPPP=addr_hi, QQQQ=addr_end)
+                addr_end = 0x10000 - 1
+            cmd = self._protocol.getCmd('read_memory', PPPP=addr_lo, QQQQ=addr_end)
             self._io.send(cmd)
-            data.append(self._io.recv())
-            addr = addr + page_size
+
+            r_addr = addr
+            while addr_lo <= addr_end:
+                buf = self._io.recv()
+                # AAAA=ddddddd....
+                r_addr, r_eq, r_data = buf[:4], buf[4:5], buf[5:]
+                if r_eq != '=':
+                    raise PgmError("Expected 'xxxx=...' in :%s" % buf)
+                if r_addr != ("%.4X" % addr_lo):
+                    raise PgmError("Invalid address in response got: %s exp: %s data: %s" %
+                            (r_addr, addr_lo, bug))
+                addr_lo = addr_lo + len(r_data) / 2
+                data = data + r_data
+
+            addr = addr_hi * 0x10000 + addr_end + 1
 
         return data
 

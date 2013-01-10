@@ -129,6 +129,8 @@ class BatchISP:
 
     def _doOperations(self):
         """Go trought all operations and try to execute them."""
+        if self._args.operation is None:
+            return
         iop = iter(self._args.operation)
         try:
             while True:
@@ -140,14 +142,22 @@ class BatchISP:
                     print(next(iop))
                 elif op == 'MEMORY':
                     self._operations.opMemory(next(iop))
+                    self._addr_start = 0
+                    self._addr_end = None
                 elif op == 'READ':
-                    self._buffer = self._operations.opRead()
+                    if self._addr_end is None:
+                        size = None
+                    else:
+                        size = self._addr_end - self._addr_start
+                    self._buffer = self._operations.opRead(self._addr_start, size)
                     print(self._buffer)
+# TODO: add readed range into buffer with offset
                 elif op == 'SAVEBUFFER':
                     with open(next(iop), 'w') as f:
                         if next(iop) != '386HEX':
                             raise PgmError("Invalid output format")
-                        f.write(self._buffer)
+# TODO: convert data to intel hex
+                        f.write(data)
                 else:
                     raise PgmError("Unknown or unsupported operation: %s" % op)
         except StopIteration:

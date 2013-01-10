@@ -1,4 +1,4 @@
-import intel_hex
+import hexutils
 import serial
 
 class SerialIO:
@@ -40,7 +40,7 @@ class SerialIO:
             raise ValueError("FIXME: we expect intel hex bug got: %s" % data)
         l = int(data[1:3], 16)
         if 1 + 2 + 4 + 2 + 2*l == len(data):
-            data = intel_hex.appendSum(data)
+            data = data + hexutils.ihexcksum(data)
         elif 1 + 2 + 4 + 2 + 2*l + 2 != len(data):
             raise ValueError("FIXME: Invalid lenght for intel hex???: %s" % data)
         print("SerialIO.send(%s)" % data)
