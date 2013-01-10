@@ -20,6 +20,9 @@ class BatchISP:
                 help="{ RS232 | TODO }")
         parser.add_argument('-version', action='version',
                 version='%(prog)s 0.0.0')
+        parser.add_argument('-sync', type=int, default=1,
+                choices=(1, 0),
+                help="Synchronize protocol (for development only)")
         parser.add_argument('-operation', nargs=argparse.REMAINDER,
                 help="<operation> <operation> ..., use help for help")
 
@@ -117,7 +120,7 @@ class BatchISP:
                     raise PrgError("Cannot determine hardware select one of: %s" % hw)
                 hw = hw[0]
             io = self._getIOByHardwareName(hw)
-            self._operations = Operations(part, io)
+            self._operations = Operations(part, io, self._args.sync)
 
             return self._doOperations()
         except PgmError as e:

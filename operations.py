@@ -5,13 +5,16 @@ from protocol import Protocol
 
 
 class Operations:
-    def __init__(self, part, io):
+    def __init__(self, part, io, sync=True):
+        """part - Part object, io - *IO object. If sync is True do protocol
+        synchronization (if supported by device."""
         self._part = part
         self._io = io
         protocolPath = self._part.getProtocolFileName(self._io.getHardware())
         protocolPath = os.path.join('ProtocolDescriptionFiles', protocolPath)
         self._protocol = Protocol(protocolPath)
-        self.opSync()
+        if sync:
+            self.opSync()
 
     def _opDotOperation(self, operation):
         """Common function for operation with no result."""
