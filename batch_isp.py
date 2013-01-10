@@ -1,4 +1,5 @@
 import argparse
+from ihex import IHex
 from parts import Parts
 from pgm_error import PgmError
 from operations import Operations
@@ -28,7 +29,6 @@ class BatchISP:
 
         #CANOPEN <node_number>
         #CANCLOSE <node_number>
-        #ERASE { f | <n> }
         #ADDRANGE <start> <end>
         #BLANKCHECK
         #PROGRAM
@@ -81,6 +81,7 @@ class BatchISP:
         #INCLUDE <cmd_file>
         operations_help = """
     ECHO "<your_comment>"
+    ERASE { f | <n> }
     MEMORY { FLASH | eeprom | <id> }
     READ
     SAVEBUFFER <hex_file_name> { intel386hex | ? }
@@ -132,6 +133,7 @@ class BatchISP:
         if self._args.operation is None:
             return
         iop = iter(self._args.operation)
+        self._buffer = IHex()
         try:
             while True:
                 try:
@@ -140,6 +142,11 @@ class BatchISP:
                     return 0
                 if op == 'ECHO':
                     print(next(iop))
+                elif op == 'ERASE':
+                    op = next(iop)
+                    if op != 'F':
+                        raise PgmError("Expected 'F' not %s" % op)
+                    self._operations.opErase()
                 elif op == 'MEMORY':
                     self._operations.opMemory(next(iop))
                     self._addr_start = 0
@@ -147,17 +154,16 @@ class BatchISP:
                 elif op == 'READ':
                     if self._addr_end is None:
                         size = None
+                        #size = 1024 # debug only, set to None!!!
                     else:
                         size = self._addr_end - self._addr_start
-                    self._buffer = self._operations.opRead(self._addr_start, size)
-                    print(self._buffer)
-# TODO: add readed range into buffer with offset
+                    data = self._operations.opRead(self._addr_start, size)
+                    self._buffer.insert_data(self._addr_start, data)
                 elif op == 'SAVEBUFFER':
-                    with open(next(iop), 'w') as f:
-                        if next(iop) != '386HEX':
-                            raise PgmError("Invalid output format")
-# TODO: convert data to intel hex
-                        f.write(data)
+                    filename = next(iop)
+                    if next(iop) != '386HEX':
+                        raise PgmError("Invalid output format")
+                    self._buffer.write_file(filename)
                 else:
                     raise PgmError("Unknown or unsupported operation: %s" % op)
         except StopIteration:

@@ -1,3 +1,4 @@
+import binascii
 import hexutils
 import os.path
 from pgm_error import PgmError
@@ -73,7 +74,7 @@ class Operations:
 
             addr = addr_hi * 0x10000 + addr_end + 1
 
-        return data
+        return binascii.unhexlify(data)
 
     def opSync(self):
         """Called only once to synchronize bytestream."""
