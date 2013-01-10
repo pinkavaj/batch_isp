@@ -5,6 +5,7 @@ all:
 		-port /dev/ttyACM0 \
 		-operation \
 			MEMORY FLASH \
+			ERASE F \
 			READ \
 			SAVEBUFFER dump.hex 386HEX
 

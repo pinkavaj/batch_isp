@@ -29,6 +29,9 @@ class Operations:
         if data != '.':
             raise PgmError("Invalid response, expected '.' got: %s" % data)
 
+    def opErase(self):
+        self._opDotOperation('erase')
+
     def opMemory(self, name):
         self._memory_name = name
         operation = 'select_memory_' + name.lower()
