@@ -91,7 +91,7 @@ class IHex(object):
       raise ValueError("Invalid line start character (%r)" % rawline[0])
 
     try:
-      line = rawline[1:].decode("hex")
+      line = binascii.unhexlify(rawline[1:])
     except:
       raise ValueError("Invalid hex data")
 
@@ -101,7 +101,7 @@ class IHex(object):
     data = line[4:dataend]
 
     #~ print line[dataend:dataend + 2], repr(line)
-    cs1 = ord(line[dataend])
+    cs1 = line[dataend]
     cs2 = self.calc_checksum(line[:dataend])
 
     if cs1 != cs2:

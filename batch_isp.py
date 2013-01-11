@@ -30,13 +30,11 @@ class BatchISP:
         #CANOPEN <node_number>
         #CANCLOSE <node_number>
         #ADDRANGE <start> <end>
-        #BLANKCHECK
         #PROGRAM
         #VERIFY
         #SERIALIZE <dest_addr> <serial_number> <number | ascii | unicode> <step>
         #START { RESET | noreset } <address>
         #WAIT <Nsec>
-        #LOADBUFFER <in_hexfile>
         #FILLBUFFER <data>
         #ONFAIL < ASK | abort | retry | ignore >
         #ASSERT < PASS | fail >
@@ -83,9 +81,10 @@ class BatchISP:
     BLANKCHECK
     ECHO "<your_comment>"
     ERASE { f | <n> }
+    LOADBUFFER <in_hexfile>
     MEMORY { FLASH | eeprom | <id> }
     READ
-    SAVEBUFFER <hex_file_name> { intel386hex | ? }
+    SAVEBUFFER <hex_file_name> { 386HEX | ? }
 """
         parser.epilog = operations_help
 
@@ -154,6 +153,10 @@ class BatchISP:
                     if op != 'F':
                         raise PgmError("Expected 'F' not %s" % op)
                     self._operations.opErase()
+                elif op == 'LOADBUFFER':
+                    filename = next(iop)
+                    self._buffer = IHex.read_file(filename)
+                    exit (0)
                 elif op == 'MEMORY':
                     self._operations.opMemory(next(iop))
                     self._addr_start = 0
