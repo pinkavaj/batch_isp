@@ -1,5 +1,6 @@
 import binascii
 import hexutils
+from ihex import IHex
 import os.path
 from pgm_error import PgmError
 from protocol import Protocol
@@ -56,6 +57,39 @@ class Operations:
         self._memory_name = name
         operation = 'select_memory_' + name.lower()
         self._opDotOperation(operation)
+
+    def opProgram(self, data, addr_start=0):
+        addr_hi_prev = None
+        addr = addr_start
+        while data:
+            addr_hi, addr_lo = divmod(addr, 0x10000)
+            if addr_hi != addr_hi_prev:
+                addr_hi_prev = addr_hi
+                cmd = self._protocol.getCmd('select_memory_page', PPPP=addr_hi)
+                self._opDotCmd(cmd)
+
+            addr_end = addr_lo + len(data)
+            if addr_end >= 0x10000:
+                addr_end = 0xffff
+            size = addr_end + 1 - addr_lo
+            buf, data = data[:size], data[size:]
+            cmd = self._protocol.getCmd('program_start', PPPP=addr_lo, QQQQ=addr_end)
+            self._opDotCmd(cmd)
+            addr = addr + size
+
+            # send data
+            ihex = IHex()
+            ihex.insert_data(addr_lo, buf)
+            #ihex.set_row_length(255)
+            ihex.set_row_length(32)
+            buf = ihex.write()
+            # split to lines, remove, empty strings
+            buf = [b for b in buf.splitlines() if b]
+            # remove hex end if file
+            import time
+            buf = buf[:-1]
+            for d in buf:
+                self._opDotCmd(str(d, 'ascii').upper())
 
     def opRead(self, addr_start, size=None):
         if size is None:

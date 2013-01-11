@@ -30,7 +30,6 @@ class BatchISP:
         #CANOPEN <node_number>
         #CANCLOSE <node_number>
         #ADDRANGE <start> <end>
-        #PROGRAM
         #VERIFY
         #SERIALIZE <dest_addr> <serial_number> <number | ascii | unicode> <step>
         #START { RESET | noreset } <address>
@@ -83,6 +82,7 @@ class BatchISP:
     ERASE { f | <n> }
     LOADBUFFER <in_hexfile>
     MEMORY { FLASH | eeprom | <id> }
+    PROGRAM
     READ
     SAVEBUFFER <hex_file_name> { 386HEX | ? }
 """
@@ -141,11 +141,7 @@ class BatchISP:
                 except StopIteration:
                     return 0
                 if op == 'BLANKCHECK':
-                    if self._addr_end is None:
-                        size = None
-                    else:
-                        size = self._addr_end - self._addr_start
-                    self._operations.opBlankCheck(self._addr_start, size)
+                    self._operations.opBlankCheck(0)
                 elif op == 'ECHO':
                     print(next(iop))
                 elif op == 'ERASE':
@@ -156,7 +152,9 @@ class BatchISP:
                 elif op == 'LOADBUFFER':
                     filename = next(iop)
                     self._buffer = IHex.read_file(filename)
-                    exit (0)
+                elif op == 'PROGRAM':
+                    for start, data in self._buffer.areas.items():
+                        self._operations.opProgram(data, start)
                 elif op == 'MEMORY':
                     self._operations.opMemory(next(iop))
                     self._addr_start = 0

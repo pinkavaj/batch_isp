@@ -8,6 +8,7 @@ all:
 			BLANKCHECK \
 			MEMORY FLASH \
 			LOADBUFFER dump_flash.hex \
+			PROGRAM \
 			READ \
 			SAVEBUFFER dump.hex 386HEX
 

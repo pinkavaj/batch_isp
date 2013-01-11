@@ -56,12 +56,22 @@ class IHex(object):
     self.areas = {}
     self.start = None
     self.mode = 8
+    self.row_length = 16
 
   def set_start(self, start=None):
     self.start = start
 
   def set_mode(self, mode):
     self.mode = mode
+
+  def get_row_length(self):
+      return self.row_length
+
+  def set_row_length(self, row_length=16):
+      """Set number of bytes writen per line hex file line."""
+      if row_length < 1 or row_length > 255:
+          raise ValueError("Invalid bytes per row %s" % repr(row_length))
+      self.row_length = row_length
 
   def get_area(self, addr):
     for start, data in self.areas.items():
@@ -124,7 +134,7 @@ class IHex(object):
       segbase = 0
 
       while i < len(data):
-        chunk = data[i:i + 16]
+        chunk = data[i:i + self.row_length]
 
         addr = start
         newsegbase = segbase
@@ -151,8 +161,8 @@ class IHex(object):
 
         output += self.make_line(0x00, addr, chunk)
 
-        i += 16
-        start += 16
+        i += self.row_length
+        start += self.row_length
 
     if self.start is not None:
       if self.mode == 16:

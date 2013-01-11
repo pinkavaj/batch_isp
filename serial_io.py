@@ -25,7 +25,7 @@ class SerialIO:
         """Recieve message (line) from device."""
         data = self.port.readline()
         if not data.endswith(b'\r\n'):
-            raise ValueError("Missing \\r\\n at end of recieved string.")
+            raise ValueError("Missing \\r\\n at end of recieved string: %s." % repr(data))
         return str(data[:-2], 'ascii')
 
     def writeRaw(self, data):
@@ -37,7 +37,7 @@ class SerialIO:
 # we suppose that trought serial line is send only intel hex
 # so we check if hex is OK or need append checksum
         if data[0] != ':':
-            raise ValueError("FIXME: we expect intel hex bug got: %s" % data)
+            raise ValueError("FIXME: we expect intel hex but got: %s" % data)
         l = int(data[1:3], 16)
         if 1 + 2 + 4 + 2 + 2*l == len(data):
             data = data + hexutils.ihexcksum(data)
