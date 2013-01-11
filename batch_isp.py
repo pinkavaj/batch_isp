@@ -80,6 +80,7 @@ class BatchISP:
         #DISSELBOOT
         #INCLUDE <cmd_file>
         operations_help = """
+    BLANKCHECK
     ECHO "<your_comment>"
     ERASE { f | <n> }
     MEMORY { FLASH | eeprom | <id> }
@@ -140,7 +141,13 @@ class BatchISP:
                     op = next(iop)
                 except StopIteration:
                     return 0
-                if op == 'ECHO':
+                if op == 'BLANKCHECK':
+                    if self._addr_end is None:
+                        size = None
+                    else:
+                        size = self._addr_end - self._addr_start
+                    self._operations.opBlankCheck(self._addr_start, size)
+                elif op == 'ECHO':
                     print(next(iop))
                 elif op == 'ERASE':
                     op = next(iop)

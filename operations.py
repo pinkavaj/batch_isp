@@ -29,6 +29,26 @@ class Operations:
         if data != '.':
             raise PgmError("Invalid response, expected '.' got: %s" % data)
 
+    def opBlankCheck(self, addr_start, size=None):
+        if size is None:
+            size = self._part.getMemory(self._memory_name).getSize() - addr_start
+
+        addr = addr_start
+        addr_hi_prev = None
+        while size > 0:
+            addr_hi, addr_lo = divmod(addr, 0x10000)
+            if addr_hi != addr_hi_prev:
+                addr_hi_prev = addr_hi
+                cmd = self._protocol.getCmd('select_memory_page', PPPP=addr_hi)
+                self._opDotCmd(cmd)
+            addr_end = addr_lo + size - 1
+            if addr_end >= 0x10000:
+                addr_end = 0xffff
+            cmd = self._protocol.getCmd('blank_check', PPPP=addr_lo, QQQQ=addr_end)
+            self._opDotCmd(cmd)
+            addr = addr_hi * 0x10000 + addr_end + 1
+            size = size - (addr_end - addr_lo + 1)
+
     def opErase(self):
         self._opDotOperation('erase')
 
@@ -46,7 +66,7 @@ class Operations:
 
         data = ''
         addr = addr_start
-        addr_hi_prev = -1
+        addr_hi_prev = None
 
         while addr < addr_stop:
             addr_hi, addr_lo = divmod(addr, 0x10000)

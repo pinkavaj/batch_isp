@@ -6,6 +6,8 @@ all:
 		-operation \
 			MEMORY FLASH \
 			ERASE F \
+			BLANKCHECK \
+			LOADBUFFER dump_flash.hex \
 			READ \
 			SAVEBUFFER dump.hex 386HEX
 
