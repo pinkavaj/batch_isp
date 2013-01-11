@@ -26,8 +26,8 @@ python3 __main__.py -device ?
 # read content of flash
 python3 __main__.py -port /dev/ttyACM0 -device ATxmega128A1 -operations MEMORY FLASH READ SAVEBUFFER dump.hex 386HEX
 
-# program device
-python3 __main__.py -port /dev/ttyACM0 -device ATxmega128A1 -operations TODO
+# program device # TODO: add verify
+python3 __main__.py -port /dev/ttyACM0 -device ATxmega128A1 -operations ERASE F BLANKCHECK MEMORY FLASH LOADBUFFER dump_flash.hex PROGRAM
 
 == Troubleshot ==
 
