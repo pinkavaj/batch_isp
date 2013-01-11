@@ -4,9 +4,9 @@ all:
 		-device ATxmega128A1 \
 		-port /dev/ttyACM0 \
 		-operation \
-			MEMORY FLASH \
 			ERASE F \
 			BLANKCHECK \
+			MEMORY FLASH \
 			LOADBUFFER dump_flash.hex \
 			READ \
 			SAVEBUFFER dump.hex 386HEX

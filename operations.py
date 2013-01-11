@@ -31,7 +31,7 @@ class Operations:
 
     def opBlankCheck(self, addr_start, size=None):
         if size is None:
-            size = self._part.getMemory(self._memory_name).getSize() - addr_start
+            size = self._part.getMemory('FLASH').getSize() - addr_start
 
         addr = addr_start
         addr_hi_prev = None
