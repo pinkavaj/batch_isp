@@ -75,7 +75,6 @@ class BatchISP:
         #INCLUDE <cmd_file>
         #ONFAIL < ASK | abort | retry | ignore >
         #ADDRANGE <start> <end>
-        #VERIFY
         operations_help = """
     BLANKCHECK
     ECHO "<your comment>"
@@ -86,6 +85,7 @@ class BatchISP:
     READ
     SAVEBUFFER <hex_file_name> { 386HEX | ? }
     START { RESET | NORESET } <address>
+    VERIFY
 """
         parser.epilog = operations_help
 
@@ -194,6 +194,15 @@ class BatchISP:
                     except StopIteration:
                         continue
                     raise PgmError("START cannot be folowed by anny instruction!!!")
+                elif op == 'VERIFY':
+                    for start, data in self._buffer.areas.items():
+                        data_r = self._operations.opRead(start, len(data))
+                        if data != data_r:
+                            while not data_r.startswith(data):
+                                data = data[:-1]
+                            addr = len(data)
+                            addr = addr + start
+                            raise PgmError("Verification failed at address: 0x%X" % addr)
                 else:
                     raise PgmError("Unknown or unsupported operation: %s" % op)
         except StopIteration:

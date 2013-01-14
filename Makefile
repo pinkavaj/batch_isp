@@ -35,3 +35,13 @@ sync:
 	python3 . \
 		-device ATxmega128A1 \
 		-port /dev/ttyACM0
+
+verify:
+	python3 . \
+		-sync 0 \
+		-device ATxmega128A1 \
+		-port /dev/ttyACM0 \
+		-operation \
+			MEMORY FLASH \
+			LOADBUFFER test_prg/test00.hex \
+			VERIFY
