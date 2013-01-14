@@ -29,13 +29,9 @@ class BatchISP:
 
         #CANOPEN <node_number>
         #CANCLOSE <node_number>
-        #ADDRANGE <start> <end>
-        #VERIFY
         #SERIALIZE <dest_addr> <serial_number> <number | ascii | unicode> <step>
-        #START { RESET | noreset } <address>
         #WAIT <Nsec>
         #FILLBUFFER <data>
-        #ONFAIL < ASK | abort | retry | ignore >
         #ASSERT < PASS | fail >
         #RBOOTID1 [ expected_data ]
         #RBOOTID2 [ expected_data ]
@@ -76,15 +72,19 @@ class BatchISP:
         #ENASELBOOT
         #DISSELBOOT
         #INCLUDE <cmd_file>
+        #ONFAIL < ASK | abort | retry | ignore >
+        #ADDRANGE <start> <end>
+        #VERIFY
         operations_help = """
     BLANKCHECK
-    ECHO "<your_comment>"
-    ERASE { f | <n> }
+    ECHO "<your comment>"
+    ERASE { F | <n> }
     LOADBUFFER <in_hexfile>
-    MEMORY { FLASH | eeprom | <id> }
+    MEMORY { FLASH | EEPROM | <id> }
     PROGRAM
     READ
     SAVEBUFFER <hex_file_name> { 386HEX | ? }
+    START { RESET | NORESET } <address>
 """
         parser.epilog = operations_help
 
@@ -172,6 +172,26 @@ class BatchISP:
                     if next(iop) != '386HEX':
                         raise PgmError("Invalid output format")
                     self._buffer.write_file(filename)
+                elif op == 'START':
+                    reset = next(iop)
+                    if reset == 'RESET':
+                        reset = True
+                        addr = next(iop)
+                    elif reset == 'NORESET':
+                        reset = False
+                        addr = next(iop)
+                    else:
+                        addr = reset
+                        reset = True
+                    addr = int(addr, 0)
+                    if addr != 0:
+                        raise PgmError("Only address 0 supported for START")
+                    self._operations.opStartAppl(reset)
+                    try:
+                        next(iop)
+                    except StopIteration:
+                        continue
+                    raise PgmError("START cannot be folowed by anny instruction!!!")
                 else:
                     raise PgmError("Unknown or unsupported operation: %s" % op)
         except StopIteration:

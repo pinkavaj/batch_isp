@@ -7,10 +7,16 @@ all:
 			ERASE F \
 			BLANKCHECK \
 			MEMORY FLASH \
-			LOADBUFFER dump_flash.hex \
+			LOADBUFFER test_prg/test00.hex \
 			PROGRAM \
-			READ \
-			SAVEBUFFER dump.hex 386HEX
+			START RESET 0
+
+reset:
+	python3 . \
+		-device ATxmega128A1 \
+		-port /dev/ttyACM0 \
+		-operation \
+			START RESET 0
 
 help:
 	python3 . -h

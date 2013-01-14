@@ -18,9 +18,9 @@ class Operations:
         if sync:
             self.opSync()
 
-    def _opDotOperation(self, operation):
+    def _opDotOperation(self, operation, **argv):
         """Common function for operation with no result."""
-        cmd = self._protocol.getCmd(operation)
+        cmd = self._protocol.getCmd(operation, **argv)
         self._opDotCmd(cmd)
 
     def _opDotCmd(self, cmd):
@@ -81,7 +81,7 @@ class Operations:
             ihex = IHex()
             ihex.insert_data(addr_lo, buf)
             #ihex.set_row_length(255)
-            ihex.set_row_length(32)
+            ihex.set_row_length(255)
             buf = ihex.write()
             # split to lines, remove, empty strings
             buf = [b for b in buf.splitlines() if b]
@@ -132,6 +132,15 @@ class Operations:
             addr = addr_hi * 0x10000 + addr_end + 1
 
         return binascii.unhexlify(data)
+
+    def opStartAppl(self, reset):
+        if reset:
+            cmd = self._protocol.getCmd('startAppliWithReset')
+        else:
+            cmd = self._protocol.getCmd('startAppliWithoutReset')
+        self._io.send(cmd)
+        # read \x00 if follows by reset, or timeout
+        self._io.readRaw(1)
 
     def opSync(self):
         """Called only once to synchronize bytestream."""
