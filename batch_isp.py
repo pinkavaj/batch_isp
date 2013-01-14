@@ -4,6 +4,7 @@ from parts import Parts
 from pgm_error import PgmError
 from operations import Operations
 from serial_io import SerialIO
+import time
 
 
 class BatchISP:
@@ -138,6 +139,7 @@ class BatchISP:
             while True:
                 try:
                     op = next(iop)
+                    time.sleep(1)
                 except StopIteration:
                     return 0
                 if op == 'BLANKCHECK':

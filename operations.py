@@ -4,6 +4,7 @@ from ihex import IHex
 import os.path
 from pgm_error import PgmError
 from protocol import Protocol
+import time
 
 
 class Operations:
@@ -15,6 +16,8 @@ class Operations:
         protocolPath = self._part.getProtocolFileName(self._io.getHardware())
         protocolPath = os.path.join('ProtocolDescriptionFiles', protocolPath)
         self._protocol = Protocol(protocolPath)
+        self._wdelay = 1
+        """Write delay hack"""
         if sync:
             self.opSync()
 
@@ -52,6 +55,7 @@ class Operations:
 
     def opErase(self):
         self._opDotOperation('erase')
+        self._wdelayHack()
 
     def opMemory(self, name):
         self._memory_name = name
@@ -75,6 +79,7 @@ class Operations:
             buf, data = data[:size], data[size:]
             cmd = self._protocol.getCmd('program_start', PPPP=addr_lo, QQQQ=addr_end)
             self._opDotCmd(cmd)
+            self._wdelayHack()
             addr = addr + size
 
             # send data
@@ -86,10 +91,10 @@ class Operations:
             # split to lines, remove, empty strings
             buf = [b for b in buf.splitlines() if b]
             # remove hex end if file
-            import time
             buf = buf[:-1]
             for d in buf:
                 self._opDotCmd(str(d, 'ascii').upper())
+                self._wdelayHack()
 
     def opRead(self, addr_start, size=None):
         if size is None:
@@ -151,3 +156,7 @@ class Operations:
             r = self._io.readRaw(len(sync))
             if r != sync:
                 raise PgmError('Synchronization failed, invalid response: %s' % r)
+
+    def _wdelayHack(self):
+        time.sleep(self._wdelay)
+
