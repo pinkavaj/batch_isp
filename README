@@ -15,5 +15,8 @@ limitations under the License.
 == Description ==
 
 Open source and free remake of Atmel's BatchIPS utility from FLIP. Usefull for
-programing Atmel's AVR SOC. Currently only small subset of devices/protocols
-are supported.
+programing Atmel's AVR SOC.
+
+Main target are devices with bootloader programmed trougth serial port.
+Currently only small subset of devices/protocols are supported. If your device
+is not supported please let my now.

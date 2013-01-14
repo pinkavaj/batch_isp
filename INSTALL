@@ -26,8 +26,8 @@ python3 __main__.py -device ?
 # read content of flash
 python3 __main__.py -port /dev/ttyACM0 -device ATxmega128A1 -operations MEMORY FLASH READ SAVEBUFFER dump.hex 386HEX
 
-# program device # TODO: add verify
-python3 __main__.py -port /dev/ttyACM0 -device ATxmega128A1 -operations ERASE F BLANKCHECK MEMORY FLASH LOADBUFFER dump_flash.hex PROGRAM
+# program device
+python3 __main__.py -port /dev/ttyACM0 -device ATxmega128A1 -operations ERASE F BLANKCHECK MEMORY FLASH LOADBUFFER dump_flash.hex PROGRAM VERIFY START RESET 0
 
 == Troubleshot ==
 
@@ -42,11 +42,11 @@ board revision 7 (and may be others). Problem is caused by firmware
 in gateway chip ATUC3B1250. You need reprogram it with new FW.
 
  - install Atmel Studio 6 (Windows required)
- - create example project "USB driver ... ???"
- - build
- - enter board controller bootloader (short bcbootloader pins)
- - connect kit trought USB to PC
- - upload hex
+ - create new example project "USB Device CDC Example - Board Controller"
+ - build project
+ - enter board controller bootloader (short bcbootloader pins on board)
+ - connect kit trought USB cable to PC
+ - upload builded hex
   a) with original BatchISP
   b) with dfu-programmer
      http://dfu-programmer.sourceforge.net/
