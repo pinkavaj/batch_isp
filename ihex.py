@@ -56,22 +56,43 @@ class IHex(object):
     self.areas = {}
     self.start = None
     self.mode = 8
-    self.row_length = 16
+    self.row_bytes = 16
 
+  def set_row_bytes(self, row_bytes):
+      """Set output hex file row width (bytes represented per row)."""
+      if row_bytes < 1 or row_bytes > 0xff:
+          raise ValueError("Value out of range: (%r)" % row_bytes)
+      self.row_bytes = row_bytes
+  
+  def extract_data(self, start=None, end=None):
+    if start is None:
+      start = 0
+    
+    if end is None:
+      end = 0
+      result = ""
+      
+      for addr, data in self.areas.items():
+        if addr >= start:
+          end = max(end, addr + len(data))
+          result = result[:start] + data[start-addr:end-addr] + result[end:]
+      
+      return result
+    
+    else:
+      result = ""
+      
+      for addr, data in self.areas.items():
+        if addr >= start and addr < end:
+          result = result[:start] + data[start-addr:end-addr] + result[end:]
+      
+      return result
+  
   def set_start(self, start=None):
     self.start = start
 
   def set_mode(self, mode):
     self.mode = mode
-
-  def get_row_length(self):
-      return self.row_length
-
-  def set_row_length(self, row_length=16):
-      """Set number of bytes writen per line hex file line."""
-      if row_length < 1 or row_length > 255:
-          raise ValueError("Invalid bytes per row %s" % repr(row_length))
-      self.row_length = row_length
 
   def get_area(self, addr):
     for start, data in self.areas.items():
@@ -90,6 +111,7 @@ class IHex(object):
 
     else:
       data = self.areas[area]
+      # istart - iend + len(idata) + len(data)
       self.areas[area] = data[:istart-area] + idata + data[iend-area:]
 
   def calc_checksum(self, bytes):
@@ -128,13 +150,13 @@ class IHex(object):
 
   def write(self):
     output = b""
-
-    for start, data in self.areas.items():
+    
+    for start, data in sorted(self.areas.items()):
       i = 0
       segbase = 0
 
       while i < len(data):
-        chunk = data[i:i + self.row_length]
+        chunk = data[i:i + self.row_bytes]
 
         addr = start
         newsegbase = segbase
@@ -161,8 +183,8 @@ class IHex(object):
 
         output += self.make_line(0x00, addr, chunk)
 
-        i += self.row_length
-        start += self.row_length
+        i += self.row_bytes
+        start += self.row_bytes
 
     if self.start is not None:
       if self.mode == 16:

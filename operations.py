@@ -85,8 +85,7 @@ class Operations:
             # send data
             ihex = IHex()
             ihex.insert_data(addr_lo, buf)
-            #ihex.set_row_length(255)
-            ihex.set_row_length(255)
+            ihex.set_row_bytes(255)
             buf = ihex.write()
             # split to lines, remove, empty strings
             buf = [b for b in buf.splitlines() if b]
