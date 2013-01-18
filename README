@@ -18,5 +18,7 @@ Open source and free remake of Atmel's BatchIPS utility from FLIP. Usefull for
 programing Atmel's AVR SOC.
 
 Main target are devices with bootloader programmed trougth serial port.
-Currently only small subset of devices/protocols are supported. If your device
+This bootloader uses some kind if DFU (device firmware upgrade) protocol,
+originaly intended for USB devices, packed into intel hex.
+Currently only small subset of devices/protocol are supported. If your device
 is not supported please let my now.
